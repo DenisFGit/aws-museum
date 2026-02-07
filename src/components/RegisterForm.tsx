@@ -1,21 +1,57 @@
-type RegisterFormProps = {
-    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-};
+import { TextField, Button, Box } from "@mui/material";
+import type { FormikProps } from "formik";
 
-const RegisterForm = ({ handleSubmit }: RegisterFormProps) => {
-    return (
-        <form onSubmit={handleSubmit}>
-            <label>
-                Name:
-                <input type="text" name="username" />
-            </label>
-            <label>
-                Password:
-                <input type="text" name="password" />
-            </label>
-            <input type="submit" value="Submit" />
-        </form>
-    )
+interface LoginFormValues {
+    username: string;
+    password: string;
 }
 
-export default RegisterForm;
+interface LoginFormProps {
+    formik: FormikProps<LoginFormValues>;
+}
+
+const LoginForm = ({ formik }: LoginFormProps) => {
+    return (
+        <Box
+            component="form"
+            onSubmit={formik.handleSubmit}
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                width: 300,
+                marginTop: '15px'
+            }}
+        >
+            <TextField
+                label="Username"
+                name="username"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.username && Boolean(formik.errors.username)}
+                helperText={formik.touched.username && formik.errors.username}
+            />
+
+            <TextField
+                label="Password"
+                name="password"
+                type="password"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.password && Boolean(formik.errors.password)}
+                helperText={formik.touched.password && formik.errors.password}
+            />
+
+            <Button
+                type="submit"
+                variant="contained"
+                disabled={formik.isSubmitting}>
+                Register
+            </Button>
+        </Box>
+    );
+};
+
+export default LoginForm;

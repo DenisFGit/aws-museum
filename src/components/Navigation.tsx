@@ -1,11 +1,28 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+
+import { logout } from '../store/slices/userSlice';
+import { useAppDispatch } from "../store/hooks";
+
+import { Box, Button } from '@mui/material';
 
 import './Navigation.scss';
 
 const Navigation = () => {
+
+    const dispatch = useAppDispatch();
+
     return (
-        <div className='nav'>
-            <h2> Navigation</h2>
+        // <div className='nav'>
+        <Box sx={{
+            position: 'fixed',
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            backgroundColor: '#27A6F5',
+            color: '#fff',
+            padding: '20px'
+
+        }}>
             <ul className='nav__menu'>
                 <li>
                     <Link to='/home'>Home</Link>
@@ -23,8 +40,19 @@ const Navigation = () => {
                     <Link to='/'>Stripe</Link>
                 </li>
             </ul>
+            <Button className="nav__btn" onClick={() => dispatch(logout())}
+                sx={{
+                    backgroundColor: 'white',
+                    fontWeight: 700,
+                    color: 'black',
+                    '&:hover': {
+                        backgroundColor: '#CDEDF7'
+                    }
+                }}
+            >Log out</Button>
+        </Box>
 
-        </div>
+        // </div>
     )
 }
 

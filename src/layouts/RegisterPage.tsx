@@ -2,30 +2,65 @@
 import { registerUser } from "../store/slices/userSlice";
 import { useAppDispatch } from "../store/hooks";
 
+import { useNavigate } from "react-router-dom";
+
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+
 import RegisterForm from "../components/RegisterForm";
+
+import { Typography, Box } from "@mui/material";
 
 const RegisterPage = () => {
 
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        const form = event.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const data = {
-            username: formData.get("username") as string,
-            password: formData.get("password") as string,
-        };
+    const formik = useFormik({
+        initialValues: {
+            username: '',
+            password: '',
+        },
+        validationSchema: Yup.object({
+            username: Yup.string()
+                .min(3, 'Not less than 3 characters')
+                .max(15, 'Must be 15 characters or less')
+                .required('Required'),
+            password: Yup.string()
+                .min(3, 'Not less than 3 characters')
+                .max(20, 'Must be 20 characters or less')
+                .required('Required'),
+        }),
+        onSubmit: async (values) => {
+            try {
+                await dispatch(registerUser(values)).unwrap();
 
-        dispatch(registerUser(data));
-
-    }
-
+                navigate('/');
+            } catch (error) {
+                console.log('Error: ' + error);
+            }
+        },
+    });
 
     return (
         <div className="register">
-            <h2> RegisterPage</h2>
-            <RegisterForm handleSubmit={handleSubmit} />
+            <Typography variant="h1"
+                sx={{
+                    fontSize: '40px',
+                    textAlign: 'center',
+                    marginTop: '20px'
+                }}>
+                RegisterPage
+            </Typography>
+            <Box
+                component='section'
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center'
+                }}>
+                <RegisterForm formik={formik} />
+            </Box>
+
 
         </div>
     )

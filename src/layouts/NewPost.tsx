@@ -1,58 +1,111 @@
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
-import { useState } from "react";
+import { Box, Button, TextField, Typography } from "@mui/material";
 
 import { useAppDispatch } from "../store/hooks";
 import { sendPost } from "../store/slices/exhibitSlices";
 
-import './NewPost.scss';
+import { useNavigate } from "react-router-dom";
+
+
+interface NewPostValues {
+    file: File | null;
+    description: string;
+}
 
 const NewPost = () => {
 
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
-    const [file, setFile] = useState<File | null>(null);
-    const [desc, setDesc] = useState<string>('');
+    const formik = useFormik<NewPostValues>({
+        initialValues: {
+            file: null,
+            description: "",
+        },
+        validationSchema: Yup.object({
+            file: Yup.mixed<File>()
+                .required("Image is required"),
+            description: Yup.string()
+                .min(3, "At least 3 characters")
+                .required("Description is required"),
+        }),
+        onSubmit: async (values) => {
+            try {
+                await dispatch(
+                    sendPost({
+                        file: values.file!,
+                        description: values.description,
+                    })
+                ).unwrap();
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-
-        if (!file) {
-            alert("Please select a file");
-            return;
-        }
-
-        try {
-
-            dispatch(sendPost({ file, description: desc }));
-
-        } catch (error) {
-            console.error("Upload failed", error);
-        }
-    };
+                navigate('/');
+            } catch (error) {
+                console.log('Error: ' + error);
+            }
+        },
+    });
 
     return (
-        <div>
-            <h1>New post page</h1>
-            <form className="form" action="" onSubmit={handleSubmit}>
-                <label>
-                    Title:
-                    <input
-                        type="file"
-                        name="image"
-                        accept="image/png, image/jpeg"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                </label>
-                <label>
-                    Description:
-                    <textarea
-                        name="description"
-                        value={desc}
-                        onChange={(e) => { setDesc(e.target.value) }} />
-                </label>
-                <input type="submit" value="Submit" />
-            </form>
-        </div>
-    )
-}
+        <Box sx={{ maxWidth: 500, mx: "auto" }}>
+            <Typography variant="h4" mb={3}
+                sx={{
+                    textAlign: 'center',
+                    marginTop: '20px'
+                }}>
+                New post page
+            </Typography>
 
-export default NewPost
+            <Box
+                component="form"
+                onSubmit={formik.handleSubmit}
+                sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+                <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    onChange={(event) => {
+                        const file = event.currentTarget.files?.[0] || null;
+                        formik.setFieldValue("file", file);
+                        formik.setFieldTouched("file", true);
+                    }}
+                />
+
+                {formik.values.file && !formik.errors.file && (
+                    <Typography color="success.main" variant="body2">
+                        Image selected: {formik.values.file.name}
+                    </Typography>
+                )}
+
+
+                <TextField
+                    label="Description"
+                    name="description"
+                    multiline
+                    rows={4}
+                    value={formik.values.description}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                        formik.touched.description &&
+                        Boolean(formik.errors.description)
+                    }
+                    helperText={
+                        formik.touched.description &&
+                        formik.errors.description
+                    }
+                />
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={formik.isSubmitting}>
+                    Submit
+                </Button>
+            </Box>
+        </Box>
+    );
+};
+
+export default NewPost;
